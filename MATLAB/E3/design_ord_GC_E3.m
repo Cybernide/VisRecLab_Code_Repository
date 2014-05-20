@@ -1,10 +1,10 @@
-function design_ord_GC_E3(subj_k) %#ok<INUSD>
+function design_ord_GC_E3(subj_k)
 
 RandStream.setGlobalStream ...
     (RandStream('mt19937ar','seed',sum(100*clock)))
 
 if nargin==0
-    subj_k=0; %#ok<NASGU> %enter subject number
+    subj_k=0; 
 end
 
 %run_n=2;
@@ -22,15 +22,30 @@ num_removed = 0;
 tuples_random(j,:) = tuples_ordered(perm_index(j),:);  % (*) okay when j=1 :)
 tup_accum = [];
 for k = 2:1770
+    
+    %For every tuple, ensure that its entries do not appear twice 
+    %in two consecutive tuples.
     if tuples_random(j,1) ~= tuples_ordered(perm_index(k),1) && ...
        tuples_random(j,1) ~= tuples_ordered(perm_index(k),2) && ...
        tuples_random(j,2) ~= tuples_ordered(perm_index(k),1) && ...
        tuples_random(j,2) ~= tuples_ordered(perm_index(k),2)
         j = j + 1;
-        tuples_random(j,:) = tuples_ordered(perm_index(k),:);  % (*) passed
+        
+        % Randomly assign the entries left and right positions. This 
+        % if-block executes if and only if the tuple passes the above 
+        % criteria.
+        if randi(2) == 2
+            tuples_random(j,:) = tuples_ordered(perm_index(k),:);  
+        else
+            tuples_random(j,:) = flip(tuples_ordered(perm_index(k),:));
+        end % (*) passed
+        
     else
+        
         num_removed = num_removed + 1;                         % (*) failed
+        % accumulate rejected tuples
         tup_accum = [tup_accum;tuples_ordered(perm_index(k),:)]; %#ok<AGROW>
+        
     end
 end
 
@@ -60,18 +75,28 @@ while size(tup_accum, 1) > 0
             t_split1 = tuples_random(1:m,:);
             t_split2 = tuples_random(m+1:end,:);
             
-            % Insert entry in tuples_random
-            tuples_random = [t_split1; tup_accum(1,:); t_split2];
+            % Randomly assign the entries left and right positions.
+            if randi(2) == 2
+                insertion = tup_accum(1,:);  
+            else
+                insertion = flip(tup_accum(1,:));
+            end
             
+            % Insert entry in tuples_random
+            tuples_random = [t_split1; insertion; t_split2];
+
             % Remove entry from tup_accum
-            tup_accum=tup_accum(2:end,:);
+            tup_accum = tup_accum(2:end,:);
     else
             % Violation found; get new index
-            m=randi(size(tuples_random, 1) - 1);
+            m = randi(size(tuples_random, 1) - 1);
     end
 end
 
+ord_mat = [tuples_random(1:295,:) tuples_random(296:590,:) ...
+    tuples_random(591:885,:) tuples_random(886:1180,:) ...
+    tuples_random(1181:1475,:) tuples_random(1476:1770,:)];
 
-%ord_fold='stims_ord_E3/';
-%fl=[ord_fold, 's', sprintf('%02.0f', subj_k), '_ord_mat.txt']; 
-%dlmwrite(fl, ord_mat, 'precision', '%03.0f'); %'precision', '%03.0f'
+ord_fold='stims_ord_E3/';
+fl=[ord_fold, 's', sprintf('%02.0f', subj_k), '_ord_mat.txt']; 
+dlmwrite(fl, ord_mat, 'precision', '%03.0f');

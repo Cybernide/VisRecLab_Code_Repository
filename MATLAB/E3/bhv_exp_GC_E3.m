@@ -28,14 +28,13 @@ age=char(answ(3));
 
 %% Get static resolution read 
 % (i.e. at matlab startup); stop if not correct
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ScreenSz=get( 0, 'ScreenSize' );
 if ScreenSz(3)~= 1344 || ScreenSz(4)~=756%unstretched (full 768) 
     error('Please adjust screen resolution to 1344 X 756 and restart Matlab!')
 end
 
 %% check for button box
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Gamepad('Unplug')%so it recognizes config after (un)plugging button box (/any USB device)
 % if Gamepad('GetNumGamepads')~=1
 %     error('Button box not recognized!')
@@ -70,9 +69,8 @@ for run_number=1:2
     end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PsychToolbox and Display initialization
+
 Screen('Preference', 'SkipSyncTests', 1)%oldEnableFlag   
 
 try 
@@ -120,28 +118,26 @@ try
     Screen('Flip', w);
     
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%% load images / info %%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+%% Display and image loading procedures   
     
     
-    %%design fixation crosses / prompt
+    % design fixation crosses / prompt
     [y, x]=meshgrid(1:30,1:30);
     x=(x>12)&(x<17); y=(y>12)&(y<17);
     fixation_dark=double(x | y)*80;    
     fixation_grey=double(x | y)*153;
 
     
-    %%load images and corr resp           
-     im_mat_fl=['stims/stim_mat.mat'];
+    % load images and corr resp           
+     im_mat_fl='stims/stim_mat.mat';
      load(im_mat_fl, 'im_mat')
      %im_mat=load('stims/stim_mat.mat');
                     
     
-    %read trial order, position (left/right)
+    % read trial order, position (left/right)
     fl=['stims_ord_E3/', subjid, '_ord_mat.txt'];
     ord_id_mat=dlmread(fl)
-    ord_gend_mat=single(ord_id_mat>60)+1;% 1-male, 2-female
+    %ord_gend_mat=single(ord_id_mat>60)+1;% 1-male, 2-female
     
     %lr_ind=randperm(240)>120;%repmat([0; 1], [120 1]);
 
@@ -151,7 +147,7 @@ try
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
        
 
-    totalEvents_perRun=120;
+    %totalEvents_perRun=1770;
     
     tmp=rand(120, 1); tmp=tmp*0.8; tmp=tmp+0.2;
     fixationTime_vect=[1; tmp];%%min: 0.2, max: 1 
@@ -161,9 +157,9 @@ try
     instructionsToUse=1;
     local_doInstructions(w, instructionsToUse, black, enter_key, esc_key)
        
-    for run_number=1:2
+    for run_number=1:6
         
-        ord_id_vect=ord_id_mat(:, run_number);
+        ord_id_vect=ord_id_mat(:,run_number*2-1:run_number*2);
         %ord_gend_vect=ord_gend_mat(:, run_number);
         
         resfile_nm=[res_fold, subjid, '_run', num2str(run_number), '.txt'];
@@ -212,7 +208,7 @@ try
     display two images taken from an ordering unique to this subj.
     %}
 
-        for trial_k=1:120 % 60 * 2
+        for trial_k=1:295 % 60 * 2
                
 
                 trial_id_code1=ord_id_vect(trial_k, 1);
@@ -225,7 +221,7 @@ try
                 %if lr_ind(trial_k)                
                     %stim=cat(2, im, zeros(size(im, 1), size(im, 2)*2, 3));
                 %else stim=cat(2, zeros(size(im, 1), size(im, 2)*2, 3), im);
-                stim=cat(2, im1, zeros(size(im, 1), size(im, 2)*2, 3), im2);
+                stim=cat(2, im1, zeros(size(im2, 1), size(im1, 2)*2, 3), im2);
                 %end
                     
                     
@@ -297,7 +293,7 @@ try
                     end
                     
                     %store results for stimuli, append to file
-                    res_vect=[trial_id_code resp RT_act ]
+                    res_vect=[trial_id_code1 trial_id_code2 resp RT_act]
                     
                     dlmwrite(resfile_nm, res_vect, '-append') % analysis file           
                     fprintf(fid,'%02.3f %02.3f %02.3f \n', stimStartTime_rec, stimEndTime_rec, RT); % info file
@@ -313,7 +309,7 @@ try
     
     
         % run preliminary analysis on this trial                
-        trial_k=trial_k
+        % trial_k=trial_k uncomment this if issues come up
         if trial_k~=240 %if debugging, use some random test values
             resp_std='DEBUG_VALUE'; RT_mn='DEBUG_VALUE'; consist='DEBUG_VALUE';
         else 
@@ -408,12 +404,8 @@ Screen('Flip', window);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function local_doEndScreen(window, bkgdColor, run_number, esc_key, resp_std, RT_mn, consist)%inputDev, , enter_key
 
-% if run_number==1 || run_number==3
+
     call_exp=1;
-% elseif run_number==5
-%     call_exp=2;
-% else call_exp=0;
-% end
 if run_number==5
    call_exp=2;
 end
@@ -470,6 +462,7 @@ end
 %%% Code to find keyboard %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function kbDev=local_findKeyboard
+%{
 % Parse through the list of input devices and get the numbers for any
 % attached keyboards. Need to do this because the actual number of any
 % given keyboard varies depending on the other input devices that are
@@ -488,7 +481,7 @@ function kbDev=local_findKeyboard
 % experiment, time ain't so critical, just have to calculate this once
 % (unless some perverse person plugs in or removes an input device
 % during the experiment!)
-
+%}
 nDevs = PsychHID('NumDevices');
 devices = PsychHID('Devices');
 kbDev = 0;

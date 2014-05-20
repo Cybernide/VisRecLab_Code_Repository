@@ -1,5 +1,5 @@
 <><><><><><><><> 
-Begin: 12-May-2014 19:27:55 
+Begin: 20-May-2014 17:32:10 
 Matlab version  8.2.0.701 (R2013b) 
 Psychtoolbox version  3.0.11 - Flavor: beta - Corresponds to SVN Revision 4591
 For more info visit:
@@ -14,3 +14,16 @@ Columns info in (this) info file:
 1. Stimulus start time (from trial start) 2. Stimulus off-time(from stimulus start time) 
 3. RT or max response duration, if no response (from stimulus start time) 
  
+1.000 1.950 1.950 
+0.899 1.465 1.465 
+0.683 1.149 1.149 
+0.901 0.777 0.777 
+0.250 1.095 1.095 
+0.251 0.853 0.853 
+0.433 0.657 0.657 
+0.551 0.383 0.383 
+0.550 0.460 0.460 
+0.633 0.274 0.274 
+0.701 0.383 0.383 
+0.751 0.558 0.558 
+0.767 0.219 0.219 
