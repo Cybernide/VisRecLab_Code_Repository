@@ -20,10 +20,10 @@ defAns={'0', 'M', '20'};
 answ = inputdlg({'Subject number:', 'Gender (M-male, F-female):', 'Age:'},...
                      'Session info', 1, defAns);
                  
-subj=str2num(char(answ(1)))
+subj=str2num(char(answ(1))); %#ok<ST2NM>
 subjid=['s', sprintf('%02.0f', subj)];
-gend=char(answ(2));
-age=char(answ(3));
+gend=char(answ(2)); %#ok<NASGU>
+age=char(answ(3)); %#ok<NASGU>
 
 
 %% Get static resolution read 
@@ -45,9 +45,9 @@ end
 
 res_fold=['bhv_results_E3/', subjid, '/'];
 
-[jnk1, jnk2]=mkdir(res_fold);
+%[jnk1, jnk2]=mkdir(res_fold);
 
-for run_number=1:2
+for run_number=1:6
     resfile_nm=[res_fold, subjid, '_run', num2str(run_number), '.txt'];
     infofile_nm=[res_fold, subjid, '_run', num2str(run_number), '_info.txt'];
 
@@ -85,7 +85,7 @@ try
     %choose the display screen (needed if multiple monitors attached)
     screenNumber = max(Screen('Screens'));
     %run code to find the device number for a wired apple keyboard
-    kbDev=local_findKeyboard;
+    kbDev=local_findKeyboard; %#ok<NASGU>
     %need to call Gamepad<-PsychHID once to get the slow initial loading of 
     %the mex file out of the way...
     
@@ -100,10 +100,10 @@ try
     
     
     black=BlackIndex(screenNumber); %bkgd color for the inst will be black
-    white=WhiteIndex(screenNumber); %bkgd color for experiment will be white
+    %white=WhiteIndex(screenNumber); %bkgd color for experiment will be white
     w=Screen('OpenWindow', screenNumber);
     nrSamples=10; [monitorFlipInterval nrValidSamples stddev] =Screen('GetFlipInterval', w, nrSamples);
-    slack = monitorFlipInterval/2 %divide by 2 (or only for OpenWindow stereomode=1?;
+    slack = monitorFlipInterval/2; %divide by 2 (or only for OpenWindow stereomode=1?;
     
     HideCursor;
     %get / display screen 
@@ -130,13 +130,13 @@ try
     
     % load images and corr resp           
      im_mat_fl='stims/stim_mat.mat';
-     load(im_mat_fl, 'im_mat')
+     load(im_mat_fl, 'im_mat');
      %im_mat=load('stims/stim_mat.mat');
                     
     
     % read trial order, position (left/right)
     fl=['stims_ord_E3/', subjid, '_ord_mat.txt'];
-    ord_id_mat=dlmread(fl)
+    ord_id_mat=dlmread(fl);
     %ord_gend_mat=single(ord_id_mat>60)+1;% 1-male, 2-female
     
     %lr_ind=randperm(240)>120;%repmat([0; 1], [120 1]);
@@ -149,7 +149,9 @@ try
 
     %totalEvents_perRun=1770;
     
-    tmp=rand(120, 1); tmp=tmp*0.8; tmp=tmp+0.2;
+    tmp=rand(295, 1); % ?
+    tmp=tmp*0.4;
+    tmp=tmp+0.2;
     fixationTime_vect=[1; tmp];%%min: 0.2, max: 1 
     stimPresLength_max = 4.0;    
     respTime_max=2.0;%0.4
@@ -159,8 +161,8 @@ try
        
     for run_number=1:6
         
+        % Initialize the ordering matrix
         ord_id_vect=ord_id_mat(:,run_number*2-1:run_number*2);
-        %ord_gend_vect=ord_gend_mat(:, run_number);
         
         resfile_nm=[res_fold, subjid, '_run', num2str(run_number), '.txt'];
         infofile_nm=[res_fold, subjid, '_run', num2str(run_number), '_info.txt'];
@@ -181,8 +183,8 @@ try
         fprintf(fid,'%s %i \n','Run Number:', run_number);    
         fprintf(fid,'%s \n','<><><><><><><><>');   
         fprintf(fid,'%s \n','Columns info in data file:');
-        fprintf(fid,'%s \n','1. display side (left 1/right 0) 2. # indvd  3. # gend ');
-        fprintf(fid,'%s \n','4. response (masc - 1 :: fem - 7) 5. RT ');
+        fprintf(fid,'%s \n','1. left indvd 2. # right indvd ');
+        fprintf(fid,'%s \n','3. response (left - 1 :: right - 2) 4. RT ');
         fprintf(fid,'%s \n','<><><><><><><><>');
         fprintf(fid,'%s \n','Columns info in (this) info file:');
         fprintf(fid,'%s \n','1. Stimulus start time (from trial start) 2. Stimulus off-time(from stimulus start time)');
@@ -208,21 +210,14 @@ try
     display two images taken from an ordering unique to this subj.
     %}
 
-        for trial_k=1:295 % 60 * 2
+        for trial_k=1:295
                
 
                 trial_id_code1=ord_id_vect(trial_k, 1);
                 trial_id_code2=ord_id_vect(trial_k, 2);
-                
-                %trial_gend_code1=ord_gend_vect(trial_k, 1);
-
-                im1=im_mat(:,:,:, trial_id_code1);
+                im1=im_mat(:,:,:, trial_id_code1); %#ok<NODEF>
                 im2=im_mat(:,:,:, trial_id_code2);
-                %if lr_ind(trial_k)                
-                    %stim=cat(2, im, zeros(size(im, 1), size(im, 2)*2, 3));
-                %else stim=cat(2, zeros(size(im, 1), size(im, 2)*2, 3), im);
                 stim=cat(2, im1, zeros(size(im2, 1), size(im1, 2)*2, 3), im2);
-                %end
                     
                     
                 Screen('PutImage', w, stim); % ready image
@@ -287,13 +282,13 @@ try
 
                     %%%write results to txt files during fixation interval
                     if sum(double(keyCodes([key1 key2])))>0 % if key pressed?
-                        resp=find(keyCodes([key1 key2]), 1, 'first') % ?
+                        resp=find(keyCodes([key1 key2]), 1, 'first'); % ?
                         RT_act=RT;
-                    else resp=NaN; res=NaN; RT_act=NaN;
+                    else resp=NaN; RT_act=NaN;
                     end
                     
                     %store results for stimuli, append to file
-                    res_vect=[trial_id_code1 trial_id_code2 resp RT_act]
+                    res_vect=[trial_id_code1 trial_id_code2 resp RT_act];
                     
                     dlmwrite(resfile_nm, res_vect, '-append') % analysis file           
                     fprintf(fid,'%02.3f %02.3f %02.3f \n', stimStartTime_rec, stimEndTime_rec, RT); % info file
@@ -306,27 +301,37 @@ try
                 end
 
         end
-    
+        
+        if trial_k~=295; %if debugging, use some random test values
+            RT_mn='DEBUG_VALUE';
+        else 
+            [RT_mn]=anl_acc_consist_GC_E3({resfile_nm});
+        end
     
         % run preliminary analysis on this trial                
         % trial_k=trial_k uncomment this if issues come up
-        if trial_k~=240 %if debugging, use some random test values
-            resp_std='DEBUG_VALUE'; RT_mn='DEBUG_VALUE'; consist='DEBUG_VALUE';
+        %{
+        if trial_k~=295; %if debugging, use some random test values
+            RT_mn='DEBUG_VALUE'; consist='DEBUG_VALUE';
         else 
-            [resp_std, RT_mn, consist]=anl_acc_consist_GC_E3({resfile_nm})
+            [RT_mn, consist]=anl_acc_consist_GC_E3({resfile_nm});
         end
-
+        
         fprintf(fid,'%s \n','<><><><><><><><>');
-        %fprintf(fid,'%s %02.2f %s %02.2f %s %02.2f \n','Rank: ', rank, '   Male acc: ', m_acc, '   Fem acc: ', f_acc);
-        fprintf(fid,'%s %02.2f \n','Response (Std deviation): ', resp_std);
         fprintf(fid,'%s %02.2f \n','RT (mean): ', RT_mn);
         fprintf(fid,'%s %02.2f \n','Consistency: ', consist);
         fprintf(fid,'%s \n','<><><><><><><><>');
         fprintf(fid,'%s %s \n','End:', datestr(now));         
         fclose(fid);
+        %}
+        fprintf(fid,'%s \n','<><><><><><><><>');
+        fprintf(fid,'%s %02.2f \n','RT (mean): ', RT_mn);
+        fprintf(fid,'%s \n','<><><><><><><><>');
+        fprintf(fid,'%s %s \n','End:', datestr(now));         
+        fclose(fid);
 
 
-        local_doEndScreen(w, black, run_number, esc_key, resp_std, RT_mn, consist)
+        local_doEndScreen(w, black, run_number, esc_key)
         
         
     end
@@ -367,12 +372,12 @@ Screen('TextStyle', window, 1);
 
 switch instNum
         case {1}
-                Screen('DrawText', window, 'In this experiment you will be presented with male  and female faces.', inst_horzpos, top_vertpos+inst_vertpos, inst_color); 
-                Screen('DrawText', window, 'Your task is to rate a face, on a scale from 1 to 7 by how masculine or feminine it is.', inst_horzpos, top_vertpos+inst_vertpos*2, inst_color);
-                Screen('DrawText', window, 'If the face is very masculine, press the 1 key.', inst_horzpos, top_vertpos+inst_vertpos*3, inst_color);
-                Screen('DrawText', window, 'If the face is very feminine, press the 7 key.', inst_horzpos, top_vertpos+inst_vertpos*4, inst_color);
-                Screen('DrawText', window, 'Please, during this task, try to utilize the entire scale from 1 to 7 when rating.', inst_horzpos, top_vertpos+inst_vertpos*5, inst_color);
-                Screen('DrawText', window, 'Also, try to respond in a timely manner.', inst_horzpos, top_vertpos+inst_vertpos*6, inst_color);              
+                Screen('DrawText', window, 'In this experiment you will be presented with pairs of male faces.', inst_horzpos, top_vertpos+inst_vertpos, inst_color); 
+                Screen('DrawText', window, 'Your task is to select the more masculine face from each pair.', inst_horzpos, top_vertpos+inst_vertpos*2, inst_color);
+                Screen('DrawText', window, 'If the left face is more masculine, press the 3 key.', inst_horzpos, top_vertpos+inst_vertpos*3, inst_color);
+                Screen('DrawText', window, 'If the right face is more masculine, press the 0 key.', inst_horzpos, top_vertpos+inst_vertpos*4, inst_color);
+                Screen('DrawText', window, ' ', inst_horzpos, top_vertpos+inst_vertpos*5, inst_color);
+                Screen('DrawText', window, 'Try to respond in a timely manner.', inst_horzpos, top_vertpos+inst_vertpos*6, inst_color);              
                 Screen('DrawText', window, 'Press enter to move on.', inst_horzpos, top_vertpos+inst_vertpos*8, inst_color);
 
                 
@@ -402,11 +407,11 @@ Screen('Flip', window);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Display summary info on this run %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function local_doEndScreen(window, bkgdColor, run_number, esc_key, resp_std, RT_mn, consist)%inputDev, , enter_key
+function local_doEndScreen(window, bkgdColor, run_number, esc_key, RT_mn)%inputDev, , enter_key
 
 
     call_exp=1;
-if run_number==5
+if run_number==6
    call_exp=2;
 end
 
@@ -422,16 +427,16 @@ Screen('TextSize',window, 18);
 %0=normal,1=bold,2=italic,4=underline,8=outline,32=condense,64=extend
 Screen('TextStyle', window, 0);
 
-Screen('DrawText', window, ['End of run ', num2str(run_number), ' (out of 2).'], inst_horzpos, top_vertpos+inst_vertpos, inst_color);
+Screen('DrawText', window, ['End of run ', num2str(run_number), ' (out of 6).'], inst_horzpos, top_vertpos+inst_vertpos, inst_color);
     
-resp_txt=sprintf('Standard deviation of responses is %02.2f%', resp_std, '%')
-Screen('DrawText', window, resp_txt, inst_horzpos, top_vertpos+inst_vertpos*3);
+%resp_txt=sprintf('Standard deviation of responses is %02.2f%', resp_std, '%')
+%Screen('DrawText', window, resp_txt, inst_horzpos, top_vertpos+inst_vertpos*3);
 
-RT_txt=sprintf('Mean reaction time is %02.2f', RT_mn)
-Screen('DrawText', window, RT_txt, inst_horzpos, top_vertpos+inst_vertpos*4);
+%RT_txt=sprintf('Mean reaction time is %02.2f', RT_mn)
+%Screen('DrawText', window, RT_txt, inst_horzpos, top_vertpos+inst_vertpos*4);
 
-consist_txt=sprintf('Consistency is %02.2f', consist)
-Screen('DrawText', window, consist_txt, inst_horzpos, top_vertpos+inst_vertpos*5);
+%consist_txt=sprintf('Consistency is %02.2f', consist)
+%Screen('DrawText', window, consist_txt, inst_horzpos, top_vertpos+inst_vertpos*5);
 
 
 
@@ -488,7 +493,7 @@ kbDev = 0;
 
 % search for a hard connected apple keyboard
 for dv = 1:nDevs,
-    if (strcmp(devices(dv).usageName, 'Keyboard') & strcmp(devices(dv).manufacturer, 'Apple') & ~strcmp(devices(dv).transport, 'Bluetooth'))
+    if (strcmp(devices(dv).usageName, 'Keyboard') && strcmp(devices(dv).manufacturer, 'Apple') && ~strcmp(devices(dv).transport, 'Bluetooth'))
         kbDev = dv;
         disp('Found wired apple keyboard.');
         break;
@@ -498,7 +503,7 @@ end
 % search for any apple keyboard
 if (~kbDev)
     for dv = 1:nDevs,
-        if (strcmp(devices(dv).usageName, 'Keyboard') & strcmp(devices(dv).manufacturer, 'Apple'))
+        if (strcmp(devices(dv).usageName, 'Keyboard') && strcmp(devices(dv).manufacturer, 'Apple'))
             kbDev = dv;
             disp('Found bluetooth apple keyboard.');
             break;
