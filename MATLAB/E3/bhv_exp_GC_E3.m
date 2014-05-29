@@ -1,5 +1,6 @@
 
 
+
 function bhv_exp_GC_E3
 %% Gender recognition task 3 %%
     %{
@@ -45,7 +46,7 @@ end
 
 res_fold=['bhv_results_E3/', subjid, '/'];
 
-%[jnk1, jnk2]=mkdir(res_fold);
+[jnk1, jnk2]=mkdir(res_fold);
 
 for run_number=1:6
     resfile_nm=[res_fold, subjid, '_run', num2str(run_number), '.txt'];
@@ -74,12 +75,8 @@ end
 Screen('Preference', 'SkipSyncTests', 1)%oldEnableFlag   
 
 try 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%% PsychToolbox setup %%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %shorten the internal calibrations and display tests (max 5s) during debugging
     %restore settings (0 - no skip) at end of script
-    %oldEnableFlag = Screen('Preference', 'SkipSyncTests', 1)
     %need this for some of the os x things?
     AssertOpenGL;
     %choose the display screen (needed if multiple monitors attached)
@@ -349,11 +346,8 @@ end
 
     
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Display instructions
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function local_doInstructions(window, instNum, bkgdColor, enter_key, esc_key)
-
+%% Display instructions to participants
 %persistent scope of these variable is this function -- but no waste
 %w/multiple calls
 
@@ -462,30 +456,27 @@ end
 % ShowCursor;
 % Screen('CloseAll');
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Code to find keyboard %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function kbDev=local_findKeyboard
+%% Find keyboard
 %{
-% Parse through the list of input devices and get the numbers for any
-% attached keyboards. Need to do this because the actual number of any
-% given keyboard varies depending on the other input devices that are
-% attached and when they were attached. For some reason, my Logitech
-% Wireless mouse doesn't show up at all in the device list OR, even
-% worse, shows up, but also seems to create a "ghost" entry for a
-% Logitech keyboard, usually as the first keyboard in the list!!!
-%
-% Some suggestions about this:
-% 1. Don't ever use a Logitech mouse while try to run PTB.
-% 2. Check if the manufacturer is Logitech and, if so, reject it
-% 3. Create a list of all keyboards with some precedence for Apple
-%    keyboards that are not connected via bluetooth
-%
-% I implement #3 below, it is ugly, but at this point in the
-% experiment, time ain't so critical, just have to calculate this once
-% (unless some perverse person plugs in or removes an input device
-% during the experiment!)
+ Parse through the list of input devices and get the numbers for any
+ attached keyboards. Need to do this because the actual number of any
+ given keyboard varies depending on the other input devices that are
+ attached and when they were attached. For some reason, my Logitech
+ Wireless mouse doesn't show up at all in the device list OR, even
+ worse, shows up, but also seems to create a "ghost" entry for a
+ Logitech keyboard, usually as the first keyboard in the list!!!
+
+ Some suggestions about this:
+ 1. Don't ever use a Logitech mouse while try to run PTB.
+ 2. Check if the manufacturer is Logitech and, if so, reject it
+ 3. Create a list of all keyboards with some precedence for Apple
+    keyboards that are not connected via bluetooth
+
+ I implement #3 below, it is ugly, but at this point in the
+ experiment, time ain't so critical, just have to calculate this once
+ (unless some perverse person plugs in or removes an input device
+ during the experiment!)
 %}
 nDevs = PsychHID('NumDevices');
 devices = PsychHID('Devices');
@@ -527,4 +518,3 @@ end
 if (~kbDev)
     error('Sorry, I could not find a keyboard for responses.\n');
 end
-
