@@ -15,7 +15,7 @@ function bhv_exp_GC_E3
 % Change the priority in case of issues with synching
 Priority(2);
 
-%% Inputting participant information%%
+%% Inputting participant information %%
 % input session info (if subj is 0, it is a test run)
 defAns={'0', 'M', '20'};
 answ = inputdlg({'Subject number:', 'Gender (M-male, F-female):', 'Age:'},...
@@ -46,7 +46,7 @@ end
 
 res_fold=['bhv_results_E3/', subjid, '/'];
 
-[jnk1, jnk2]=mkdir(res_fold);
+[jnk1, jnk2]=mkdir(res_fold); %#ok<ASGLU,NASGU>
 
 for run_number=1:6
     resfile_nm=[res_fold, subjid, '_run', num2str(run_number), '.txt'];
@@ -99,7 +99,7 @@ try
     black=BlackIndex(screenNumber); %bkgd color for the inst will be black
     %white=WhiteIndex(screenNumber); %bkgd color for experiment will be white
     w=Screen('OpenWindow', screenNumber);
-    nrSamples=10; [monitorFlipInterval nrValidSamples stddev] =Screen('GetFlipInterval', w, nrSamples);
+    nrSamples=10; [monitorFlipInterval nrValidSamples stddev] =Screen('GetFlipInterval', w, nrSamples); %#ok<NASGU,NCOMMA,ASGLU>
     slack = monitorFlipInterval/2; %divide by 2 (or only for OpenWindow stereomode=1?;
     
     HideCursor;
@@ -234,7 +234,7 @@ try
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 
                 while sum(double(keyCodes([key1 key2 g_key])))==0 && (GetSecs < stimEndTime_max)                                
-                   [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck;           
+                   [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck;            %#ok<NASGU,ASGLU>
                    WaitSecs(0.01);
                 end
                 stimEndTime_act=GetSecs;
@@ -250,7 +250,7 @@ try
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 if sum(double(keyCodes([key1 key2 g_key])))==0
                     while sum(double(keyCodes([key1 key2 g_key])))==0 && (GetSecs < respEndTime)
-                       [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck;
+                       [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck; %#ok<NASGU,ASGLU>
                        WaitSecs(0.01);
                     end
                     RT=GetSecs-stimStartTime_act;
@@ -299,37 +299,26 @@ try
 
         end
         
-        if trial_k~=295; %if debugging, use some random test values
-            RT_mn='DEBUG_VALUE';
-        else 
-            [RT_mn]=anl_acc_consist_GC_E3({resfile_nm});
-        end
-    
         % run preliminary analysis on this trial                
         % trial_k=trial_k uncomment this if issues come up
-        %{
-        if trial_k~=295; %if debugging, use some random test values
+
+        if trial_k~=295 %if debugging, use some random test values
             RT_mn='DEBUG_VALUE'; consist='DEBUG_VALUE';
         else 
-            [RT_mn, consist]=anl_acc_consist_GC_E3({resfile_nm});
+            [RT_mn, consist, min, maxm, total_rightvote, total_leftvote, self_consist]=anl_acc_consist_GC_E3({resfile_nm}, subjid, run_number);
         end
-        
+
         fprintf(fid,'%s \n','<><><><><><><><>');
         fprintf(fid,'%s %02.2f \n','RT (mean): ', RT_mn);
         fprintf(fid,'%s %02.2f \n','Consistency: ', consist);
+        fprintf(fid,'%s %02.2f \n','Self Consistency: ', self_consist);
         fprintf(fid,'%s \n','<><><><><><><><>');
         fprintf(fid,'%s %s \n','End:', datestr(now));         
         fclose(fid);
-        %}
-        fprintf(fid,'%s \n','<><><><><><><><>');
-        fprintf(fid,'%s %02.2f \n','RT (mean): ', RT_mn);
-        fprintf(fid,'%s \n','<><><><><><><><>');
-        fprintf(fid,'%s %s \n','End:', datestr(now));         
-        fclose(fid);
-
-
-        local_doEndScreen(w, black, run_number, esc_key)
         
+
+        
+        local_doEndScreen(w, black, run_number, esc_key, consist, min, maxm, total_rightvote, total_leftvote, self_consist);
         
     end
     
@@ -383,7 +372,7 @@ end
 
 keyCodes(1:256) = 0;
 while sum(double(keyCodes([enter_key esc_key])))==0
-    [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck;
+    [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck; %#ok<ASGLU,NASGU>
     
 end
 
@@ -401,12 +390,14 @@ Screen('Flip', window);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Display summary info on this run %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function local_doEndScreen(window, bkgdColor, run_number, esc_key, RT_mn)%inputDev, , enter_key
+function local_doEndScreen(window, bkgdColor, run_number, esc_key, consist, min, maxm, total_rightvote, total_leftvote, self_consist)%inputDev, , enter_key
 
 
-    call_exp=1;
-if run_number==6
-   call_exp=2;
+call_exp=1;
+if run_number==3
+    call_exp=2;
+elseif run_number==6
+    call_exp=3;
 end
 
 inst_horzpos=50;
@@ -422,24 +413,25 @@ Screen('TextSize',window, 18);
 Screen('TextStyle', window, 0);
 
 Screen('DrawText', window, ['End of run ', num2str(run_number), ' (out of 6).'], inst_horzpos, top_vertpos+inst_vertpos, inst_color);
-    
-%resp_txt=sprintf('Standard deviation of responses is %02.2f%', resp_std, '%')
-%Screen('DrawText', window, resp_txt, inst_horzpos, top_vertpos+inst_vertpos*3);
-
-%RT_txt=sprintf('Mean reaction time is %02.2f', RT_mn)
-%Screen('DrawText', window, RT_txt, inst_horzpos, top_vertpos+inst_vertpos*4);
-
-%consist_txt=sprintf('Consistency is %02.2f', consist)
-%Screen('DrawText', window, consist_txt, inst_horzpos, top_vertpos+inst_vertpos*5);
-
-
+consist_txt=sprintf('Correlation to other participants: %02.2f', consist);
+Screen('DrawText', window, consist_txt, inst_horzpos, top_vertpos+inst_vertpos*2);
+self_consist_txt=sprintf('Your consistency: %02.2f%', self_consist, '%');
+Screen('DrawText', window, self_consist_txt, inst_horzpos, top_vertpos+inst_vertpos*3);
+lr_text=sprintf('You picked the image on the right a total of %2.2f times and the image on the left %2.2f', total_rightvote, total_leftvote);
+Screen('DrawText', window, lr_text, inst_horzpos, top_vertpos+inst_vertpos*4);
 
 Screen('TextColor',window, [255 255 255]);
 if call_exp==1
-    Screen('DrawText', window, 'Take a short break if needed. Please call the experimenter to continue!', inst_horzpos, top_vertpos+inst_vertpos*7);
+    Screen('DrawText', window, 'Take a short break if needed. Please call the experimenter to continue!', inst_horzpos, top_vertpos+inst_vertpos*10);
 elseif call_exp==2
-    Screen('DrawText', window, 'You are finished. Please call the experimenter!', inst_horzpos, top_vertpos+inst_vertpos*7);
-%else Screen('DrawText', window, 'Take a short break if needed. Then press ''Enter'' to continue!', inst_horzpos, top_vertpos+inst_vertpos*7);
+    Screen('DrawText', window, 'Take a short break if needed.  Please call the experimenter to continue!', inst_horzpos, top_vertpos+inst_vertpos*15);
+elseif call_exp==3
+    Screen('DrawText', window, 'You ranked these images as being least masculine and most masculine during this run.', inst_horzpos, top_vertpos+inst_vertpos*5, inst_color);
+    min_img=imread(strcat('stims/stim10', sprintf('%02d', min), '1.tif'));
+    maxm_img=imread(strcat('stims/stim10', sprintf('%02d', maxm), '1.tif'));
+    disp_final=cat(2, min_img, zeros(size(maxm_img, 1), size(min_img, 2)*2, 3), maxm_img);
+    Screen('PutImage', window, disp_final);
+    Screen('DrawText', window, 'You are finished. Please call the experimenter!', inst_horzpos, top_vertpos+inst_vertpos*15);
 end
 Screen('Flip', window);
 
@@ -447,10 +439,10 @@ keyCodes(1:256) = 0;
 
 if call_exp>0
     while ~keyCodes(esc_key)
-        [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck;
+        [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck; %#ok<NASGU,ASGLU>
     end
 else while ~keyCodes(enter_key)
-        [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck;
+        [keyIsDown, secs, keyCodes, deltaSecs] = KbCheck; %#ok<NASGU,ASGLU>
     end
 end
 % ShowCursor;

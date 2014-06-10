@@ -24,7 +24,8 @@ j = 1;
 tuples_random(j,:) = tuples_ordered(perm_index(j),:);  % (*) okay when j=1 :)
 tup_accum = [];
 
-% check condition: no image is repeated twice in a row
+% loop checks condition: no image is repeated twice in a row
+% details provided as follows...
 for k = 2:1770
     
     %For every tuple, ensure that its entries do not appear twice 

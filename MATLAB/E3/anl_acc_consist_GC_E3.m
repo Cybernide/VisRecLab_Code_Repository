@@ -1,4 +1,4 @@
-function [RT_mn]=anl_acc_consist_GC_E3(dt_mat)
+function [RT_mn, consist, min, max, total_rightvote, total_leftvote, self_consist]=anl_acc_consist_GC_E3(fl_nm_array, subjid, run_number)
 % Old function signature below:
 % function [RT_mn, consist]=anl_acc_consist_GC_E3(fl_nm_array)
 % Given result file obtained from bhv_exp_GC_E2, returns three elem
@@ -6,11 +6,11 @@ function [RT_mn]=anl_acc_consist_GC_E3(dt_mat)
 % 1 - mean reaction times, 2 - consistency
 
 %% Read input data
-%{
+
 % Default values; used for no input arguments
-if nargin==0    
     res_fold='bhv_results_E3/'; % results folder
-    fl1=[res_fold, '/s00/s00_run1.txt']; % subject number
+if nargin==0    
+    fl1=[res_fold, 's03/s03_run5.txt']; % subject number
     fl_nm_array={fl1}; % copy array, maintaining nested levels
 end
 
@@ -23,7 +23,9 @@ for fl_k=1:size(fl_nm_array, 1)
     else dt_mat=[dt_mat; dt]; %#ok<AGROW>
     end
 end
-%}
+
+
+
 %{
  Calculate values for output elem
  Indices for input vector as reference
@@ -35,10 +37,9 @@ trial_id_code1 trial_id_code2 resp RT_act
 %}
 
 %% Mean reaction time
+RT_mn=nanmean(dt_mat(:, 4));
 
-%RT_mn=nanmean(dt_mat(:, 4));
-
-%% Consistency calculation
+%% Consistency calculations
     %{
         For each image, obtain the frequency in which it appears and the
         frequency in which it is rated as being more masculine/feminine.
@@ -48,31 +49,90 @@ trial_id_code1 trial_id_code2 resp RT_act
     %}
 % import data and number the results
 rate_data = importdata('../E2/gend_vect_rate.txt');
-[base_asc,base_index] = sort(rate_data(1:60,:), 1, 'ascend');
 
-% Find the instances of the image in results file.
+
+    %{
+        Find the instances of the image in results file. Count the number 
+        of times an image was voted as being more masculine. The 
+        masculinity value is equal to the number of the votes over how many
+        times the image was displayed. If an image does not appear this 
+        run, give it a NaN value.
+    %}
+total_rightvote = 0;
+total_leftvote = 0;
+
 results=zeros(60, 1);
 for indvd_k=1:60
     leftpos = find(dt_mat(:,1) == indvd_k);
     rightpos = find(dt_mat(:,2) == indvd_k);
-    leftvote = dt_mat(leftpos, 3) == 1;
-    rightvote = dt_mat(rightpos,3) == 2;
+    leftvote = sum(dt_mat(leftpos, 3) == 1);
+    rightvote = sum(dt_mat(rightpos,3) == 2);
     if  (numel(leftpos) + numel(rightpos)) > 0
         results(indvd_k,:) = (leftvote + rightvote)/(numel(leftpos) + ... 
             numel(rightpos));
+    total_rightvote = total_rightvote + rightvote;
+    total_leftvote = total_leftvote + leftvote;
+    
     else
         results(indvd_k,:) = NaN;
     end
 end
 
-[res_asc, res_index]=sort(results, 1, 'ascend')
+
+% Remove NaN values
+trimmed_rate_data=rate_data(~isnan(results));
+trimmed_results=results(~isnan(results));
+
+% Sort by ascending masculinity
+[~,base_index] = sort(trimmed_rate_data, 1, 'descend');
+[res_rank, res_index] = sort(trimmed_results, 1, 'ascend');
+
+min = res_index(1);                                                                                                                                                                                                                                                                                                                                                                                                                                             
+max = res_index(end);
+
+% Correlation of the sets of indices
+consist = corr(res_index, base_index);
+% Records rankings from this run
+rank_rec=[res_fold, subjid, 'run', num2str(run_number), '_masc_rank.txt']
+
+% Calculate subject intra-consistency
 
 %{
-resp_mat=[dt_mat(ind_mat(:,1), 4) dt_mat(ind_mat(:,2), 4)]; % resp matrix
-ind_nmb=isfinite(resp_mat(:, 1).*resp_mat(:, 2));
-resp_mat=resp_mat(ind_nmb,:);
+    This is super-duper messy at this time, but I can't think of how to
+    implement intraconsistency calculation without tearing the current
+    program apart. -- Cy
 %}
-%corr_dt=resp_mat;
-RHO = corr(res_index, base_index)
-%consist=RHO(1,2)
-%PVAL=PVAL
+
+% If an old intraconsistency file exists, read it in, 
+% if not, create a new one
+if exist(rank_rec, 'file')
+    old_rank_data = importdata(rank_rec);
+    % seperate the ranks and their indicies
+    prev_rank = old_rank_data(:, 1);
+    prev_index = old_rank_data(:, 2);
+    
+    % correlate the old masc rankings to the current one
+    self_consist = corr(res_index, prev_index);
+    
+    % initialize a new set of intraconsistency records
+    new_rank_rec = zeros(60, 1);
+    
+    % for each, image, average the masculinity ranking across runs
+    for indvd_k=1:60
+        new_rank_rec(indvd_k) = ...
+            (prev_rank((prev_index) == indvd_k)...
+            + res_rank((res_index) == indvd_k))/2;
+    end
+
+    % sort and order the indicies by their ranking, record to file
+    [new_rank, new_rank_ind] = sort(new_rank_rec, 1, 'ascend');
+    dlmwrite(rank_rec, [new_rank, new_rank_ind]);
+
+    
+else
+    % if an old subject intraconsistency file does not exist, make a new
+    % one, and obviously, the first one is consistent with itself.
+    dlmwrite(rank_rec, [res_rank, res_index]);
+    self_consist = 1.0;
+    
+end
