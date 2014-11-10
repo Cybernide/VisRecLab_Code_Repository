@@ -10,10 +10,10 @@ function [RT_mn, consist, min, max, total_rightvote, total_leftvote, self_consis
 % Default values; used for no input arguments
     res_fold='bhv_results_E4'; % results folder
 if nargin==0    
-    fl1=[res_fold, '/s00/s00_run2.txt']; % subject number
+    fl1=[res_fold, '/s04/s04_run6.txt']; % subject number
     fl_nm_array={fl1}; % copy array, maintaining nested levels
-    subjid = 's00';
-    run_number = 2;
+    subjid = 's04';
+    run_number = 6;
 end
 
 % read entries of file
@@ -49,7 +49,7 @@ RT_mn=nanmean(dt_mat(:, 4));
         set. Correlate this with the masculinity/femininity of rankings from
         experiment 2.
     %}
-% import data and number the results
+% import data
 rate_data = importdata('../E2/gend_vect_rate.txt');
 
 
@@ -97,7 +97,7 @@ min = res_index(1);
 max = res_index(end);
 
 % Correlation of the sets of indices
-consist = corr(res_index, base_index)
+consist = corr(res_index, base_index);
 
 
 
@@ -109,7 +109,7 @@ consist = corr(res_index, base_index)
     program apart. -- Cy
 %}
 % initialize a new set of intraconsistency records
-old_rank_rec = zeros(60, 1)
+old_rank_rec = zeros(60, 1);
 
 % If an old intraconsistency file exists, read it in, 
 % if not, create a new one
@@ -117,13 +117,13 @@ if run_number > 1;
     for run_k=(run_number-1):-1:1
         prev_rank_file = ...
             [res_fold, '/', subjid, '/', subjid, '_run', ...
-            num2str(run_k), '_fem_rank.txt']
-        prev_rank_data = importdata(prev_rank_file)
-        old_rank_rec = old_rank_rec + prev_rank_data
+            num2str(run_k), '_fem_rank.txt'];
+        prev_rank_data = importdata(prev_rank_file);
+        old_rank_rec = old_rank_rec + prev_rank_data;
     end
     
-    prev_avg_rank = old_rank_rec/5;
-    self_consist = corr(results, prev_avg_rank)
+    prev_avg_rank = old_rank_rec/run_number;
+    self_consist = corr(results, prev_avg_rank);
 
     
 

@@ -43,7 +43,7 @@ end
 
 
 %% Output file info (stop/overwrite if this subj&session already collected)
-
+cd('/Users/VisRecLab/VisRecLab_Code_Repository/MATLAB/E3')
 res_fold=['bhv_results_E3/', subjid, '/'];
 
 [jnk1, jnk2]=mkdir(res_fold); %#ok<ASGLU,NASGU>
@@ -72,7 +72,7 @@ end
 
 %% PsychToolbox and Display initialization
 
-Screen('Preference', 'SkipSyncTests', 1)%oldEnableFlag   
+Screen('Preference', 'SkipSyncTests', 0)%oldEnableFlag   
 
 try 
     %shorten the internal calibrations and display tests (max 5s) during debugging
@@ -175,7 +175,7 @@ try
         fprintf(fid,'%s %s \n','Begin:', datestr(now));
         fprintf(fid,'%s %s \n','Matlab version ', version);
         PTversion=PsychtoolboxVersion;
-        fprintf(fid,'%s %s \n','Psychtoolbox version ', PTversion(1:83));
+        fprintf(fid,'%s %s \n','Psychtoolbox version ', PTversion);
         fprintf(fid,'%s %s %s %s %s %s \n','Subjid:', subjid);
         fprintf(fid,'%s %i \n','Run Number:', run_number);    
         fprintf(fid,'%s \n','<><><><><><><><>');   

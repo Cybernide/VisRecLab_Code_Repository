@@ -1,6 +1,7 @@
 
 
 
+
 function bhv_exp_GC_E4
 %% Gender recognition task 4 %%
     %{
@@ -72,7 +73,7 @@ end
 
 %% PsychToolbox and Display initialization
 
-Screen('Preference', 'SkipSyncTests', 1)%oldEnableFlag   
+Screen('Preference', 'SkipSyncTests', 0)%oldEnableFlag   
 
 try 
     %shorten the internal calibrations and display tests (max 5s) during debugging
@@ -175,7 +176,7 @@ try
         fprintf(fid,'%s %s \n','Begin:', datestr(now));
         fprintf(fid,'%s %s \n','Matlab version ', version);
         PTversion=PsychtoolboxVersion;
-        fprintf(fid,'%s %s \n','Psychtoolbox version ', PTversion(1:83));
+        fprintf(fid,'%s %s \n','Psychtoolbox version ', PTversion);
         fprintf(fid,'%s %s %s %s %s %s \n','Subjid:', subjid);
         fprintf(fid,'%s %i \n','Run Number:', run_number);    
         fprintf(fid,'%s \n','<><><><><><><><>');   
@@ -466,7 +467,7 @@ function kbDev=local_findKeyboard
  I implement #3 below, it is ugly, but at this point in the
  experiment, time ain't so critical, just have to calculate this once
  (unless some perverse person plugs in or removes an input device
- during the experiment!)
+ during the experiment!) - adrian
 %}
 nDevs = PsychHID('NumDevices');
 devices = PsychHID('Devices');
